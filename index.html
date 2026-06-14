@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventario Firebase</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f4f6f9;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #ddd;
+      font-weight: bold;
+    }
+
+    .tab.active {
+      background: #1976d2;
+      color: white;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .add-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th {
+      background: #1976d2;
+      color: white;
+      padding: 12px;
+    }
+
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    td input[type="text"] {
+      width: 100%;
+      padding: 6px;
+    }
+
+    .stock {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .stock.low {
+      color: red;
+    }
+
+    img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .delete-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .adjust-btn {
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    .adjust-input {
+      width: 80px;
+      text-align: center;
+    }
+
+    select {
+      padding: 6px;
+    }
+
+    #secretLogin {
+
+      position: fixed;
+
+      top: 0;
+
+      right: 0;
+
+      width: 20px;
+
+      height: 20px;
+
+      opacity: 0;
+
+      cursor: pointer;
+
+      z-index: 99999;
+    }
+
+    #userInfo {
+
+      position: fixed;
+
+      top: 10px;
+
+      right: 10px;
+
+      background: white;
+
+      padding: 8px 12px;
+
+      border-radius: 8px;
+
+      box-shadow: 0 0 10px rgba(0, 0, 0, .2);
+
+      display: none;
+
+      z-index: 9999;
+    }
+
+    @media(max-width:768px) {
+
+      body {
+        padding: 10px;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      img {
+        width: 45px;
+        height: 45px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="secretLogin"></div>
+
+  <div id="userInfo">
+
+    <span id="userName"></span>
+
+    <button onclick="logout()">
+      Salir
+    </button>
+
+  </div>
+
+  <div id="loginModal" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.5);
+justify-content:center;
+align-items:center;
+z-index:99999;
+">
+
+    <div style="
+background:white;
+padding:20px;
+border-radius:10px;
+width:320px;
+">
+
+      <h3>Acceso</h3>
+
+      <input id="nombre" type="text" placeholder="Nombre" style="
+width:100%;
+margin-bottom:10px;
+padding:8px;
+">
+
+      <input id="email" type="email" placeholder="Email" style="
+width:100%;
+margin-bottom:10px;
+padding:8px;
+">
+
+      <input id="password" type="password" placeholder="Contraseña" style="
+width:100%;
+margin-bottom:10px;
+padding:8px;
+">
+
+      <button onclick="registerUser()">
+        Registrar
+      </button>
+
+      <button onclick="login()">
+        Entrar
+      </button>
+
+    </div>
+
+  </div>
+
+  <h1>📦 Inventario</h1>
+
+  <div class="tabs">
+    <button class="tab active" onclick="changeSection('casa',this)">Casa</button>
+    <button class="tab" onclick="changeSection('almacenArriba',this)">Almacén Arriba</button>
+    <button class="tab" onclick="changeSection('almacenMuelle',this)">Almacén Muelle</button>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Buscar producto..." onkeyup="renderTable()">
+
+    <button id="btnAdd" class="add-btn" onclick="addProduct()">
+      ➕ Añadir Producto
+    </button>
+    <button id="btnImport" onclick="migrateLocalData()">
+      ⬆️ Importar datos locales
+    </button>
+  </div>
+
+  <table>
+
+    <thead>
+      <tr>
+        <th>Imagen</th>
+        <th>Nombre</th>
+        <th>Cantidad</th>
+        <th>Movimiento</th>
+        <th>Mover</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody id="tableBody"></tbody>
+
+  </table>
+
+  <script type="module">
+
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      onSnapshot
+    }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut
+    }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+
+      apiKey: "AIzaSyBYa4tuy6QIFPsW-cOX4id5l-tH1c8DBZM",
+      authDomain: "almacen-71c09.firebaseapp.com",
+      projectId: "almacen-71c09",
+      storageBucket: "almacen-71c09.appspot.com",
+      messagingSenderId: "433934928669",
+      appId: "1:433934928669:web:184a41fa33f02413d0eff4"
+
+    };
+
+    const app = initializeApp(firebaseConfig);
+
+    const db = getFirestore(app);
+
+    const auth = getAuth(app);
+
+    window.userRole = "guest";
+
+    window.currentUser = null;
+
+    window.currentSection = "casa";
+
+    window.data = JSON.parse(
+      localStorage.getItem("inventario")
+    ) || {
+
+      casa: [],
+      almacenArriba: [],
+      almacenMuelle: []
+
+    };
+
+    async function saveToFirebase() {
+
+      try {
+
+        await setDoc(
+          doc(db, "inventario", "principal"),
+          window.data
+        );
+
+      } catch (error) {
+
+        console.error(error);
+      }
+    }
+
+    async function migrateLocalData() {
+
+      try {
+
+        const localData = JSON.parse(
+          localStorage.getItem("inventario")
+        );
+
+        if (!localData) {
+
+          alert("No hay datos locales");
+
+          return;
+        }
+
+        await setDoc(
+          doc(db, "inventario", "principal"),
+          localData
+        );
+
+        alert(
+          "Datos locales importados a Firebase"
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert(
+          "Error importando datos"
+        );
+      }
+    }
+
+    window.migrateLocalData = migrateLocalData;
+
+    document
+      .getElementById("secretLogin")
+      .addEventListener("click", () => {
+
+        document
+          .getElementById("loginModal")
+          .style.display = "flex";
+
+      });
+
+    window.registerUser = async function () {
+
+      try {
+
+        const nombre =
+          document
+            .getElementById("nombre")
+            .value
+            .trim();
+
+        const email =
+          document
+            .getElementById("email")
+            .value
+            .trim();
+
+        const password =
+          document
+            .getElementById("password")
+            .value;
+
+        if (!nombre) {
+
+          alert("Introduce un nombre");
+
+          return;
+        }
+
+        const cred =
+          await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+
+        await setDoc(
+          doc(
+            db,
+            "usuarios",
+            cred.user.uid
+          ),
+          {
+            nombre: nombre,
+            email: email,
+            rol: "usuario",
+            fechaRegistro:
+              new Date().toISOString()
+          }
+        );
+
+        alert(
+          "Usuario creado correctamente"
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert(error.message);
+      }
+    };
+
+    window.login = async function () {
+
+      try {
+
+        const email =
+          document
+            .getElementById("email")
+            .value
+            .trim();
+
+        const password =
+          document
+            .getElementById("password")
+            .value;
+
+        await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert(error.message);
+      }
+    };
+
+    window.logout = async function () {
+
+      try {
+
+        await signOut(auth);
+
+      } catch (error) {
+
+        console.error(error);
+      }
+    };
+
+    window.updatePermissions = function () {
+
+      const isAdmin =
+        window.userRole === "admin";
+
+      const btnAdd =
+        document.getElementById("btnAdd");
+
+      const btnImport =
+        document.getElementById("btnImport");
+
+      if (btnAdd) {
+
+        btnAdd.style.display =
+          isAdmin
+            ? "inline-block"
+            : "none";
+      }
+
+      if (btnImport) {
+
+        btnImport.style.display =
+          isAdmin
+            ? "inline-block"
+            : "none";
+      }
+    };
+
+    onAuthStateChanged(
+      auth,
+      async (user) => {
+
+        if (!user) {
+
+          window.currentUser = null;
+
+          window.userRole = "guest";
+
+          document
+            .getElementById("secretLogin")
+            .style.display =
+            "block";
+
+          document
+            .getElementById("userInfo")
+            .style.display =
+            "none";
+
+          updatePermissions();
+
+          renderTable();
+
+          return;
+        }
+
+        window.currentUser = user;
+
+        try {
+
+          const userDoc =
+            await getDoc(
+              doc(
+                db,
+                "usuarios",
+                user.uid
+              )
+            );
+
+          if (userDoc.exists()) {
+
+            const userData =
+              userDoc.data();
+
+            window.userRole =
+              userData.rol || "usuario";
+
+            document
+              .getElementById("userName")
+              .innerHTML =
+              userData.nombre +
+              " (" +
+              window.userRole +
+              ")";
+
+          } else {
+
+            window.userRole =
+              "usuario";
+          }
+
+        } catch (error) {
+
+          console.error(error);
+
+          window.userRole =
+            "usuario";
+        }
+
+        document
+          .getElementById("loginModal")
+          .style.display =
+          "none";
+
+        document
+          .getElementById("secretLogin")
+          .style.display =
+          "none";
+
+        document
+          .getElementById("userInfo")
+          .style.display =
+          "block";
+
+        updatePermissions();
+
+        renderTable();
+
+      }
+    );
+
+    async function loadFromFirebase() {
+
+      try {
+
+        const snap = await getDoc(
+          doc(db, "inventario", "principal")
+        );
+
+        if (snap.exists()) {
+
+          window.data = snap.data();
+
+          localStorage.setItem(
+            "inventario",
+            JSON.stringify(window.data)
+          );
+
+          renderTable();
+        }
+
+      } catch (error) {
+
+        console.error(error);
+      }
+    }
+
+    function startRealtimeSync() {
+
+      onSnapshot(
+        doc(db, "inventario", "principal"),
+        (snapshot) => {
+
+          if (snapshot.exists()) {
+
+            window.data = snapshot.data();
+
+            localStorage.setItem(
+              "inventario",
+              JSON.stringify(window.data)
+            );
+
+            renderTable();
+          }
+        }
+      );
+    }
+
+    window.saveData = async function () {
+
+      localStorage.setItem(
+        "inventario",
+        JSON.stringify(window.data)
+      );
+
+      await saveToFirebase();
+    };
+
+    window.changeSection = function (section, button) {
+
+      currentSection = section;
+
+      document.querySelectorAll(".tab")
+        .forEach(tab => tab.classList.remove("active"));
+
+      button.classList.add("active");
+
+      renderTable();
+    };
+
+    window.addProduct = function () {
+
+      data[currentSection].push({
+
+        img: "",
+        nombre: "",
+        cantidad: 0
+
+      });
+
+      saveData();
+      renderTable();
+    };
+
+    window.updateName = function (index, value) {
+
+      data[currentSection][index].nombre = value;
+
+      saveData();
+    };
+
+    window.updateImage = function (index, input) {
+
+      const file = input.files[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+
+        data[currentSection][index].img =
+          e.target.result;
+
+        saveData();
+        renderTable();
+      };
+
+      reader.readAsDataURL(file);
+    };
+
+    window.adjustStock = function (index, amount) {
+
+      let stock =
+        Number(data[currentSection][index].cantidad) || 0;
+
+      stock += amount;
+
+      if (stock < 0) {
+        stock = 0;
+      }
+
+      data[currentSection][index].cantidad = stock;
+
+      saveData();
+      renderTable();
+    };
+
+    window.deleteProduct = function (index) {
+
+      if (confirm("¿Eliminar producto?")) {
+
+        data[currentSection].splice(index, 1);
+
+        saveData();
+        renderTable();
+      }
+    };
+
+    window.moveProduct = function (index, destination) {
+
+      if (destination === currentSection) return;
+
+      const product =
+        data[currentSection][index];
+
+      data[destination].push(product);
+
+      data[currentSection].splice(index, 1);
+
+      saveData();
+      renderTable();
+    };
+    window.renderTable = function () {
+
+      const tbody =
+        document.getElementById("tableBody");
+
+      const search =
+        document.getElementById("search")
+          .value
+          .toLowerCase();
+
+      tbody.innerHTML = "";
+
+      data[currentSection].forEach((item, index) => {
+
+        if (
+          !item.nombre.toLowerCase().includes(search)
+          &&
+          !String(item.cantidad)
+            .includes(search)
+        ) {
+          return;
+        }
+
+        const lowClass =
+          item.cantidad <= 5
+            ? "low"
+            : "";
+
+        tbody.innerHTML += `
+
+        <tr>
+
+            <td>
+
+                ${item.img
+
+            ?
+
+            `<img src="${item.img}">`
+
+            :
+
+            `<input
+                        type="file"
+                        accept="image/*"
+                        onchange="updateImage(${index},this)">`
+          }
+
+            </td>
+
+            <td>
+
+                <input
+                    type="text"
+                    value="${item.nombre}"
+                    onchange="updateName(${index},this.value)"
+                    placeholder="Nombre producto">
+
+            </td>
+
+            <td>
+
+                <span class="stock ${lowClass}">
+                    ${Number(item.cantidad)
+            .toLocaleString('es-ES')}
+                </span>
+
+            </td>
+
+            <td>
+
+${window.userRole === "admin"
+
+            ?
+
+            `
+
+<input
+type="number"
+id="mov${index}"
+class="adjust-input"
+value="1"
+min="1">
+
+<button
+class="adjust-btn"
+onclick="adjustStock(
+${index},
+parseInt(
+document.getElementById(
+'mov${index}'
+).value || 1
+)
+)">
+➕
+</button>
+
+<button
+class="adjust-btn"
+onclick="adjustStock(
+${index},
+-parseInt(
+document.getElementById(
+'mov${index}'
+).value || 1
+)
+)">
+➖
+</button>
+
+`
+
+            :
+
+            `Solo lectura`
+
+          }
+
+</td>
+
+            <td>
+
+${window.userRole === "admin"
+
+            ?
+
+            `
+
+<select
+onchange="moveProduct(
+${index},
+this.value
+)">
+
+<option value="">
+Mover...
+</option>
+
+<option value="casa">
+Casa
+</option>
+
+<option value="almacenArriba">
+Almacén Arriba
+</option>
+
+<option value="almacenMuelle">
+Almacén Muelle
+</option>
+
+</select>
+
+`
+
+            :
+
+            `Solo lectura`
+
+          }
+
+</td>
+
+            <td>
+
+${window.userRole === "admin"
+
+            ?
+
+            `
+
+<button
+class="delete-btn"
+onclick="deleteProduct(${index})">
+Eliminar
+</button>
+
+`
+
+            :
+
+            `Solo lectura`
+
+          }
+
+</td>
+
+        </tr>
+
+        `;
+      });
+    };
+
+    loadFromFirebase();
+
+    startRealtimeSync();
+
+  </script>
+
+</body>
+
+</html>
