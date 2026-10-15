@@ -312,6 +312,19 @@
     #loginModal {
       z-index: 100010 !important;
     }
+
+    #adminLogPanel h2 {
+      margin: 12px 0;
+    }
+
+    #adminLogPanel p {
+      margin-bottom: 12px;
+      color: #9aaac4;
+    }
+
+    #adminLogPanel table {
+      min-width: 650px;
+    }
   </style>
 </head>
 
@@ -399,6 +412,29 @@ padding:8px;
     <button class="add-btn" onclick="addWarehouse()">＋ Añadir almacén</button>
   </div>
 
+  <div id="adminLogBar" class="toolbar" style="display:none">
+    <button type="button" onclick="showAdminLog()">📋 Ver registro de movimientos</button>
+  </div>
+  <section id="adminLogPanel" style="display:none; margin-bottom:18px">
+    <h2>Registro de movimientos</h2>
+    <p>Registro de cambios realizados en el inventario.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Almacén</th>
+            <th>Ítem</th>
+            <th>Cantidad</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody id="adminLogBody"></tbody>
+      </table>
+    </div>
+    <button type="button" onclick="hideAdminLog()" style="margin-top:12px">Cerrar registro</button>
+  </section>
+
   <div class="toolbar">
     <input type="text" id="search" placeholder="Buscar producto..." onkeyup="renderTable()">
 
@@ -472,6 +508,7 @@ padding:8px;
     window.userRole = "guest";
 
     window.currentUser = null;
+    window.currentUserName = "";
 
     window.currentSection = "casa";
 
@@ -527,6 +564,7 @@ padding:8px;
       while (Object.prototype.hasOwnProperty.call(window.data.warehouseNames, key)) key = "almacen_" + base + "_" + n++;
       window.data.warehouseNames[key] = name;
       window.data[key] = [];
+      addMovementLog(key, "(almacén creado)", "-");
       window.currentSection = key;
       input.value = "";
       await window.saveData();
@@ -540,12 +578,55 @@ padding:8px;
       const name = window.data.warehouseNames[key];
       if (!name) return;
       if (!confirm('¿Eliminar el almacén "' + name + '" y todos sus productos? Esta acción no se puede deshacer.')) return;
+      addMovementLog(key, "(almacén eliminado)", `Almacén borrado; productos eliminados: ${(window.data[key] || []).length}`);
       delete window.data[key];
       delete window.data.warehouseNames[key];
       if (window.currentSection === key) window.currentSection = "casa";
       await window.saveData();
       renderWarehouseTabs();
       window.renderTable();
+    };
+
+    function isCarlosAdmin() {
+      return !!window.currentUser
+        && String(window.currentUserName || "").trim().toLowerCase() === "carlos"
+        && window.userRole === "admin";
+    }
+
+    function addMovementLog(warehouseKey, itemName, quantity) {
+      if (!isCarlosAdmin()) return;
+      if (!Array.isArray(window.data.logs)) window.data.logs = [];
+      window.data.logs.unshift({
+        nombre: window.currentUserName || "Carlos",
+        almacen: (window.data.warehouseNames || {})[warehouseKey] || warehouseKey || "-",
+        item: String(itemName || "(sin nombre)"),
+        cantidad: String(quantity ?? "-"),
+        fecha: new Date().toLocaleString("es-ES", { dateStyle: "short", timeStyle: "medium" })
+      });
+      // Keep the newest 5000 entries to stay within Firestore document size limits.
+      window.data.logs = window.data.logs.slice(0, 5000);
+    }
+
+    window.showAdminLog = function () {
+      if (!isCarlosAdmin()) return alert("No tienes permiso para ver el registro.");
+      document.getElementById("adminLogPanel").style.display = "block";
+      document.getElementById("adminLogBar").style.display = "none";
+      const tbody = document.getElementById("adminLogBody");
+      tbody.innerHTML = "";
+      (window.data.logs || []).forEach(entry => {
+        const tr = document.createElement("tr");
+        [entry.nombre, entry.almacen, entry.item, entry.cantidad, entry.fecha].forEach(value => {
+          const td = document.createElement("td");
+          td.textContent = value ?? "-";
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    };
+
+    window.hideAdminLog = function () {
+      document.getElementById("adminLogPanel").style.display = "none";
+      document.getElementById("adminLogBar").style.display = isCarlosAdmin() ? "flex" : "none";
     };
 
     async function saveToFirebase() {
@@ -742,9 +823,12 @@ padding:8px;
         if (!user) {
 
           window.currentUser = null;
+          window.currentUserName = "";
 
           window.userRole = "guest";
           document.getElementById("guestOverlay").style.display = "flex";
+          document.getElementById("adminLogBar").style.display = "none";
+          document.getElementById("adminLogPanel").style.display = "none";
 
           document
             .getElementById("secretLogin")
@@ -784,6 +868,7 @@ padding:8px;
 
             window.userRole =
               String(userData.rol || "").trim();
+            window.currentUserName = String(userData.nombre || "").trim();
 
             document
               .getElementById("userName")
@@ -822,6 +907,7 @@ padding:8px;
           "block";
 
         updatePermissions();
+        document.getElementById("adminLogBar").style.display = isCarlosAdmin() ? "flex" : "none";
 
         renderTable();
 
@@ -912,15 +998,20 @@ padding:8px;
         cantidad: 0
 
       });
-
       saveData();
       renderTable();
     };
 
     window.updateName = function (index, value) {
-
+      const previousName = data[currentSection][index].nombre || "";
       data[currentSection][index].nombre = value;
-
+      if (String(value || "").trim() && String(value).trim() !== previousName) {
+        addMovementLog(
+          currentSection,
+          String(value).trim(),
+          `nombre actualizado; cantidad: ${Number(data[currentSection][index].cantidad) || 0}`
+        );
+      }
       saveData();
     };
 
@@ -948,6 +1039,8 @@ padding:8px;
 
       let stock =
         Number(data[currentSection][index].cantidad) || 0;
+      const itemName = data[currentSection][index].nombre || "(sin nombre)";
+      const previousStock = stock;
 
       stock += amount;
 
@@ -956,6 +1049,8 @@ padding:8px;
       }
 
       data[currentSection][index].cantidad = stock;
+      const action = amount > 0 ? "Añadido" : "Quitado";
+      addMovementLog(currentSection, itemName, `${action}: ${Math.abs(amount)}; stock ${previousStock} → ${stock}`);
 
       saveData();
       renderTable();
@@ -965,6 +1060,8 @@ padding:8px;
 
       if (confirm("¿Eliminar producto?")) {
 
+        const removed = data[currentSection][index];
+        addMovementLog(currentSection, removed?.nombre || "(sin nombre)", `Borrado; cantidad anterior: ${removed?.cantidad ?? 0}`);
         data[currentSection].splice(index, 1);
 
         saveData();
@@ -978,6 +1075,7 @@ padding:8px;
 
       const product =
         data[currentSection][index];
+      addMovementLog(currentSection, product?.nombre || "(sin nombre)", `movido a ${(data.warehouseNames || {})[destination] || destination}; cantidad: ${product?.cantidad ?? 0}`);
 
       data[destination].push(product);
 
