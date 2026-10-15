@@ -7,86 +7,146 @@
   <title>Inventario Firebase</title>
 
   <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1120;
+      --panel: #111a2e;
+      --panel2: #17233b;
+      --border: #2a3854;
+      --text: #e8eef9;
+      --muted: #9aaac4;
+      --blue: #2563eb;
+    }
+
     * {
-      margin: 0;
-      padding: 0;
       box-sizing: border-box;
       font-family: Arial, sans-serif;
     }
 
     body {
-      background: #f4f6f9;
-      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+      padding: 22px;
+      background: radial-gradient(ellipse at top left, #172747 0, var(--bg) 55%);
+      color: var(--text);
     }
 
     h1 {
-      margin-bottom: 20px;
+      margin: 0 0 22px;
+      font-size: clamp(1.7rem, 3vw, 2.3rem);
+    }
+
+    .tabs,
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
     .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
+      padding: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 12px;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel2);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    button:hover {
+      filter: brightness(1.15);
     }
 
     .tab {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #ddd;
+      background: transparent;
+      border-color: transparent;
       font-weight: bold;
     }
 
     .tab.active {
-      background: #1976d2;
+      background: var(--blue);
       color: white;
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-      flex-wrap: wrap;
     }
 
     .toolbar input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    input,
+    select {
       padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #0b1426;
+      color: var(--text);
+    }
+
+    input::placeholder {
+      color: #8292ad;
     }
 
     .add-btn {
-      background: #28a745;
+      background: #16803c;
+      border-color: #16803c;
       color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 6px;
-      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #btnImport {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
     }
 
     table {
       width: 100%;
+      min-width: 760px;
       border-collapse: collapse;
-      background: white;
     }
 
     th {
-      background: #1976d2;
-      color: white;
-      padding: 12px;
+      background: #1d3153;
+      color: #dbeafe;
+      padding: 13px;
+      text-transform: uppercase;
+      font-size: .8rem;
+      letter-spacing: .04em;
     }
 
     td {
-      border: 1px solid #ddd;
-      padding: 8px;
+      border-top: 1px solid var(--border);
+      padding: 10px;
       text-align: center;
     }
 
-    td input[type="text"] {
+    tbody tr:hover {
+      background: #ffffff06;
+    }
+
+    td input[type=text] {
       width: 100%;
-      padding: 6px;
+      min-width: 120px;
     }
 
     .stock {
@@ -95,100 +155,179 @@
     }
 
     .stock.low {
-      color: red;
+      color: #fb7185;
     }
 
     img {
-      width: 60px;
-      height: 60px;
+      width: 58px;
+      height: 58px;
       object-fit: cover;
-      border-radius: 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
     }
 
-    .delete-btn {
-      background: #dc3545;
+    .delete-btn,
+    .warehouse-remove {
+      background: #991b1b;
+      border-color: #b91c1c;
       color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 5px;
-      cursor: pointer;
     }
 
     .adjust-btn {
-      padding: 6px 10px;
-      cursor: pointer;
+      padding: 7px 10px;
+      margin: 2px;
     }
 
     .adjust-input {
-      width: 80px;
+      width: 70px;
       text-align: center;
     }
 
-    select {
-      padding: 6px;
-    }
-
     #secretLogin {
-
       position: fixed;
-
       top: 0;
-
       right: 0;
-
-      width: 20px;
-
-      height: 20px;
-
+      width: 24px;
+      height: 24px;
       opacity: 0;
-
       cursor: pointer;
-
       z-index: 99999;
     }
 
     #userInfo {
-
       position: fixed;
-
       top: 10px;
-
       right: 10px;
-
-      background: white;
-
+      background: var(--panel2);
+      border: 1px solid var(--border);
       padding: 8px 12px;
-
-      border-radius: 8px;
-
-      box-shadow: 0 0 10px rgba(0, 0, 0, .2);
-
+      border-radius: 9px;
       display: none;
-
       z-index: 9999;
     }
 
+    #loginModal {
+      backdrop-filter: blur(7px);
+    }
+
+    #loginModal>div {
+      background: var(--panel) !important;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    #loginModal input {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
     @media(max-width:768px) {
-
       body {
-        padding: 10px;
+        padding: 12px;
       }
 
-      table {
-        font-size: 12px;
+      #userInfo {
+        position: static;
+        width: fit-content;
+        margin-bottom: 15px;
       }
 
-      img {
-        width: 45px;
-        height: 45px;
+      .toolbar input {
+        min-width: 100%;
       }
+    }
+
+    .warehouse-remove {
+      margin: 4px 8px 4px -6px;
+      padding: 8px 10px;
+      background: #7f1d1d;
+      border: 1px solid #ef4444;
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .warehouse-remove:hover {
+      background: #b91c1c;
+    }
+
+
+    /* Pantalla de acceso: oculta por completo el inventario a visitantes */
+    #guestOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow: auto;
+      background: #0b1120;
+      color: #e8eef9;
+      text-align: center;
+    }
+
+    #guestCard {
+      width: min(560px, 100%);
+      padding: 30px;
+      border-radius: 18px;
+      background: #111a2e;
+      border: 1px solid #354765;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, .6);
+    }
+
+    #guestCard h2 {
+      margin: 0 0 14px;
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+    }
+
+    #guestCard p {
+      color: #aab8cf;
+      margin: 0 0 18px;
+    }
+
+    #guestMeme {
+      display: block;
+      width: min(340px, 100%);
+      height: 220px;
+      object-fit: contain;
+      margin: 0 auto 18px;
+      border-radius: 12px;
+    }
+
+    #guestCard button {
+      display: block;
+      margin: 0 auto;
+      background: #2563eb;
+      color: white;
+      border-color: #3b82f6;
+    }
+
+    /* El punto de acceso invisible queda por encima de la pantalla de bloqueo */
+    #secretLogin {
+      z-index: 100002 !important;
+    }
+
+    #loginModal {
+      z-index: 100010 !important;
     }
   </style>
 </head>
 
 <body>
 
-  <div id="secretLogin"></div>
+  <div id="secretLogin" title="Acceso"></div>
+
+  <div id="guestOverlay" role="dialog" aria-modal="true" aria-labelledby="guestTitle">
+    <div id="guestCard">
+      <h2 id="guestTitle">¿Qué coño intentas mirar?</h2>
+      <p>Esta zona es para gente con acceso 😉</p>
+      <img id="guestMeme" alt="Meme de un gato mirando con sospecha"
+        src="https://media.giphy.com/media/VbnUQpprotect4nQ2OZ/giphy.gif"
+        onerror="this.onerror=null;this.src='https://media.giphy.com/media/Ju7l5y9rabzdh7sdx7/giphy.gif';">
+    </div>
+  </div>
 
   <div id="userInfo">
 
@@ -254,10 +393,10 @@ padding:8px;
 
   <h1>📦 Inventario</h1>
 
-  <div class="tabs">
-    <button class="tab active" onclick="changeSection('casa',this)">Casa</button>
-    <button class="tab" onclick="changeSection('almacenArriba',this)">Almacén Arriba</button>
-    <button class="tab" onclick="changeSection('almacenMuelle',this)">Almacén Muelle</button>
+  <div class="tabs" id="warehouseTabs" aria-label="Almacenes"></div>
+  <div class="toolbar" id="warehouseAdmin" style="display:none">
+    <input type="text" id="newWarehouseName" maxlength="50" placeholder="Nombre del nuevo almacén">
+    <button class="add-btn" onclick="addWarehouse()">＋ Añadir almacén</button>
   </div>
 
   <div class="toolbar">
@@ -271,22 +410,24 @@ padding:8px;
     </button>
   </div>
 
-  <table>
+  <div class="table-wrap">
+    <table>
 
-    <thead>
-      <tr>
-        <th>Imagen</th>
-        <th>Nombre</th>
-        <th>Cantidad</th>
-        <th>Movimiento</th>
-        <th>Mover</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
+      <thead>
+        <tr>
+          <th>Imagen</th>
+          <th>Nombre</th>
+          <th>Cantidad</th>
+          <th>Movimiento</th>
+          <th>Mover</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
 
-    <tbody id="tableBody"></tbody>
+      <tbody id="tableBody"></tbody>
 
-  </table>
+    </table>
+  </div>
 
   <script type="module">
 
@@ -340,8 +481,71 @@ padding:8px;
 
       casa: [],
       almacenArriba: [],
-      almacenMuelle: []
+      almacenMuelle: [],
+      warehouseNames: { casa: "Casa", almacenArriba: "Almacén Arriba", almacenMuelle: "Almacén Muelle" }
 
+    };
+
+    const defaultWarehouseNames = { casa: "Casa", almacenArriba: "Almacén Arriba", almacenMuelle: "Almacén Muelle" };
+    window.data.warehouseNames = window.data.warehouseNames || {};
+    Object.keys(window.data.warehouseNames).forEach(key => { if (!Array.isArray(window.data[key])) window.data[key] = []; });
+
+    function renderWarehouseTabs() {
+      const tabs = document.getElementById("warehouseTabs");
+      if (!tabs) return;
+      tabs.innerHTML = "";
+      Object.entries(window.data.warehouseNames).forEach(([key, name]) => {
+        const tab = document.createElement("button");
+        tab.className = "tab" + (window.currentSection === key ? " active" : "");
+        tab.textContent = name;
+        tab.onclick = () => window.changeSection(key, tab);
+        tabs.appendChild(tab);
+        if (window.userRole === "admin") {
+          const remove = document.createElement("button");
+          remove.className = "warehouse-remove";
+          remove.textContent = "✕ Borrar";
+          remove.title = "Borrar almacén " + name;
+          remove.setAttribute("aria-label", "Borrar almacén " + name);
+          remove.onclick = (event) => {
+            event.stopPropagation();
+            window.deleteWarehouse(key);
+          };
+          tabs.appendChild(remove);
+        }
+      });
+      document.getElementById("warehouseAdmin").style.display = window.userRole === "admin" ? "flex" : "none";
+    }
+
+    window.addWarehouse = async function () {
+      if (window.userRole !== "admin") return alert("Solo un administrador puede añadir almacenes.");
+      const input = document.getElementById("newWarehouseName");
+      const name = input.value.trim();
+      if (!name) return alert("Escribe el nombre del almacén.");
+      if (Object.values(window.data.warehouseNames).some(n => n.toLowerCase() === name.toLowerCase())) return alert("Ya existe un almacén con ese nombre.");
+      const base = name.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 35) || "almacen";
+      let key = "almacen_" + base, n = 2;
+      while (Object.prototype.hasOwnProperty.call(window.data.warehouseNames, key)) key = "almacen_" + base + "_" + n++;
+      window.data.warehouseNames[key] = name;
+      window.data[key] = [];
+      window.currentSection = key;
+      input.value = "";
+      await window.saveData();
+      renderWarehouseTabs();
+      window.renderTable();
+    };
+
+    window.deleteWarehouse = async function (key) {
+      if (window.userRole !== "admin") return alert("Solo un administrador puede eliminar almacenes.");
+      if (!key) return;
+      const name = window.data.warehouseNames[key];
+      if (!name) return;
+      if (!confirm('¿Eliminar el almacén "' + name + '" y todos sus productos? Esta acción no se puede deshacer.')) return;
+      delete window.data[key];
+      delete window.data.warehouseNames[key];
+      if (window.currentSection === key) window.currentSection = "casa";
+      await window.saveData();
+      renderWarehouseTabs();
+      window.renderTable();
     };
 
     async function saveToFirebase() {
@@ -527,13 +731,8 @@ padding:8px;
             : "none";
       }
 
-      if (btnImport) {
-
-        btnImport.style.display =
-          isAdmin
-            ? "inline-block"
-            : "none";
-      }
+      if (btnImport) btnImport.style.display = isAdmin ? "inline-block" : "none";
+      renderWarehouseTabs();
     };
 
     onAuthStateChanged(
@@ -545,6 +744,7 @@ padding:8px;
           window.currentUser = null;
 
           window.userRole = "guest";
+          document.getElementById("guestOverlay").style.display = "flex";
 
           document
             .getElementById("secretLogin")
@@ -564,6 +764,7 @@ padding:8px;
         }
 
         window.currentUser = user;
+        document.getElementById("guestOverlay").style.display = "none";
 
         try {
 
@@ -639,6 +840,9 @@ padding:8px;
         if (snap.exists()) {
 
           window.data = snap.data();
+          window.data.warehouseNames = window.data.warehouseNames || {};
+          Object.keys(window.data.warehouseNames).forEach(key => { if (!Array.isArray(window.data[key])) window.data[key] = []; });
+          renderWarehouseTabs();
 
           localStorage.setItem(
             "inventario",
@@ -663,6 +867,9 @@ padding:8px;
           if (snapshot.exists()) {
 
             window.data = snapshot.data();
+            window.data.warehouseNames = window.data.warehouseNames || {};
+            Object.keys(window.data.warehouseNames).forEach(key => { if (!Array.isArray(window.data[key])) window.data[key] = []; });
+            renderWarehouseTabs();
 
             localStorage.setItem(
               "inventario",
@@ -918,17 +1125,7 @@ this.value
 Mover...
 </option>
 
-<option value="casa">
-Casa
-</option>
-
-<option value="almacenArriba">
-Almacén Arriba
-</option>
-
-<option value="almacenMuelle">
-Almacén Muelle
-</option>
+${Object.entries(window.data.warehouseNames).map(([key, name]) => `<option value="${key}">${name}</option>`).join("")}
 
 </select>
 
@@ -972,6 +1169,7 @@ Eliminar
       });
     };
 
+    renderWarehouseTabs();
     loadFromFirebase();
 
     startRealtimeSync();
