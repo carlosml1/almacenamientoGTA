@@ -322,7 +322,7 @@
   <div id="guestOverlay" role="dialog" aria-modal="true" aria-labelledby="guestTitle">
     <div id="guestCard">
       <h2 id="guestTitle">¿Qué coño intentas mirar?</h2>
-      <p>Esta zona es para gente con acceso 😉</p>
+      <p>Esta zona es para gente con acceso. El botón secreto sigue ahí arriba 😉</p>
       <img id="guestMeme" alt="Meme de un gato mirando con sospecha"
         src="https://media.giphy.com/media/VbnUQpprotect4nQ2OZ/giphy.gif"
         onerror="this.onerror=null;this.src='https://media.giphy.com/media/Ju7l5y9rabzdh7sdx7/giphy.gif';">
@@ -653,7 +653,7 @@ padding:8px;
           {
             nombre: nombre,
             email: email,
-            rol: "usuario",
+            rol: "",
             fechaRegistro:
               new Date().toISOString()
           }
@@ -783,20 +783,16 @@ padding:8px;
               userDoc.data();
 
             window.userRole =
-              userData.rol || "usuario";
+              String(userData.rol || "").trim();
 
             document
               .getElementById("userName")
-              .innerHTML =
-              userData.nombre +
-              " (" +
-              window.userRole +
-              ")";
+              .textContent = userData.nombre + (window.userRole ? " (" + window.userRole + ")" : " (sin rango)");
 
           } else {
 
             window.userRole =
-              "usuario";
+              "";
           }
 
         } catch (error) {
@@ -806,6 +802,9 @@ padding:8px;
           window.userRole =
             "usuario";
         }
+
+        document.getElementById("guestOverlay").style.display =
+          window.userRole ? "none" : "flex";
 
         document
           .getElementById("loginModal")
