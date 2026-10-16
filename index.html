@@ -1155,7 +1155,7 @@
     const db = getFirestore(app);
 
     const auth = getAuth(app);
-
+    const allImages = [];
     const storage = getStorage(
       app,
       "gs://almacen-71c09.firebasestorage.app"
@@ -2242,27 +2242,46 @@
       try {
 
         const allImages = [];
-
-        const extensions = /\.(png|jpe?g|gif|webp|avif|bmp|svg)$/i;
-
-
+        const extensions = /\.(png|jpe?g|gif|webp|avif|bmp)$/i;
 
         async function scanFolder(folderRef) {
           const result = await listAll(folderRef);
-          for (const itemRef of result.items) {
-            if (!extensions.test(itemRef.name)) continue;
-            try {
-              const url = await getDownloadURL(itemRef);
-              allImages.push({ name: itemRef.name, path: itemRef.fullPath, url });
-            } catch (itemError) {
-              console.warn("No se pudo obtener la URL de:", itemRef.fullPath, itemError);
-            }
+
+          // Obtener primero la lista de archivos, sin pedir aún todas las URL.
+          const imageRefs = result.items.filter(item =>
+            extensions.test(item.name)
+          );
+
+          // Obtener las URL en paralelo, en grupos de 10.
+          for (let i = 0; i < imageRefs.length; i += 10) {
+            const batch = imageRefs.slice(i, i + 10);
+
+            const images = await Promise.all(
+              batch.map(async itemRef => {
+                try {
+                  return {
+                    name: itemRef.name,
+                    path: itemRef.fullPath,
+                    url: await getDownloadURL(itemRef)
+                  };
+                } catch (error) {
+                  console.warn("No se pudo cargar:", itemRef.fullPath, error);
+                  return null;
+                }
+              })
+            );
+
+            allImages.push(...images.filter(Boolean));
+
+            if (requestId !== storageRequestId) return;
           }
-          for (const prefix of result.prefixes) await scanFolder(prefix);
+
+          // Continuar con las subcarpetas.
+          for (const prefix of result.prefixes) {
+            if (requestId !== storageRequestId) return;
+            await scanFolder(prefix);
+          }
         }
-
-
-
 
         await scanFolder(ref(storage, "/"));
 
