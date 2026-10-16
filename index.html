@@ -1,503 +1,1154 @@
 <!DOCTYPE html>
+
 <html lang="es">
 
+
+
 <head>
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Inventario Firebase</title>
 
   <style>
     :root {
+
       color-scheme: dark;
+
       --bg: #0b1120;
+
       --panel: #111a2e;
+
       --panel2: #17233b;
+
       --border: #2a3854;
+
       --text: #e8eef9;
+
       --muted: #9aaac4;
+
       --blue: #2563eb;
+
     }
+
+
 
     * {
+
       box-sizing: border-box;
+
       font-family: Arial, sans-serif;
+
     }
+
+
 
     body {
+
       margin: 0;
+
       min-height: 100vh;
+
       padding: 22px;
+
       background: radial-gradient(ellipse at top left, #172747 0, var(--bg) 55%);
+
       color: var(--text);
+
     }
+
+
 
     h1 {
+
       margin: 0 0 22px;
+
       font-size: clamp(1.7rem, 3vw, 2.3rem);
+
     }
+
+
 
     .tabs,
+
     .toolbar {
+
       display: flex;
+
       gap: 10px;
+
       margin-bottom: 16px;
+
       flex-wrap: wrap;
+
       align-items: center;
+
     }
+
+
 
     .tabs {
+
       padding: 8px;
+
       border: 1px solid var(--border);
+
       background: var(--panel);
+
       border-radius: 12px;
+
     }
+
+
 
     button,
+
     input,
+
     select {
+
       font: inherit;
+
     }
+
+
 
     button {
+
       padding: 10px 14px;
+
       border: 1px solid var(--border);
+
       border-radius: 8px;
+
       background: var(--panel2);
+
       color: var(--text);
+
       cursor: pointer;
+
     }
+
+
 
     button:hover {
+
       filter: brightness(1.15);
+
     }
+
+
+
+    button:disabled {
+
+      opacity: .5;
+
+      cursor: not-allowed;
+
+    }
+
+
 
     .tab {
+
       background: transparent;
+
       border-color: transparent;
+
       font-weight: bold;
+
     }
+
+
 
     .tab.active {
+
       background: var(--blue);
+
       color: white;
+
     }
+
+
 
     .toolbar input {
+
       flex: 1;
+
       min-width: 200px;
+
     }
+
+
 
     input,
+
     select {
+
       padding: 10px;
+
       border: 1px solid var(--border);
+
       border-radius: 7px;
+
       background: #0b1426;
+
       color: var(--text);
+
     }
+
+
 
     input::placeholder {
+
       color: #8292ad;
+
     }
+
+
 
     .add-btn {
+
       background: #16803c;
+
       border-color: #16803c;
+
       color: white;
+
       font-weight: bold;
+
     }
+
+
 
     #btnImport {
+
       background: #1d4ed8;
+
       border-color: #1d4ed8;
+
     }
+
+
 
     .table-wrap {
+
       overflow-x: auto;
+
       border: 1px solid var(--border);
+
       border-radius: 12px;
+
       background: var(--panel);
+
     }
+
+
 
     table {
+
       width: 100%;
+
       min-width: 760px;
+
       border-collapse: collapse;
+
     }
+
+
 
     th {
+
       background: #1d3153;
+
       color: #dbeafe;
+
       padding: 13px;
+
       text-transform: uppercase;
+
       font-size: .8rem;
+
       letter-spacing: .04em;
+
     }
+
+
 
     td {
+
       border-top: 1px solid var(--border);
+
       padding: 10px;
+
       text-align: center;
+
     }
+
+
 
     tbody tr:hover {
+
       background: #ffffff06;
+
     }
+
+
 
     td input[type=text] {
+
       width: 100%;
+
       min-width: 120px;
+
     }
+
+
 
     .stock {
+
       font-size: 18px;
+
       font-weight: bold;
+
     }
+
+
 
     .stock.low {
+
       color: #fb7185;
+
     }
 
-    img {
+
+
+    .product-img {
+
       width: 58px;
+
       height: 58px;
+
       object-fit: cover;
+
       border-radius: 8px;
+
       border: 1px solid var(--border);
+
     }
+
+
 
     .delete-btn,
+
     .warehouse-remove {
+
       background: #991b1b;
+
       border-color: #b91c1c;
+
       color: white;
+
     }
+
+
 
     .adjust-btn {
+
       padding: 7px 10px;
+
       margin: 2px;
+
     }
+
+
 
     .adjust-input {
+
       width: 70px;
+
       text-align: center;
+
     }
 
+
+
     #secretLogin {
+
       position: fixed;
+
       top: 0;
+
       right: 0;
+
       width: 24px;
+
       height: 24px;
+
       opacity: 0;
+
       cursor: pointer;
-      z-index: 99999;
+
+      z-index: 100002;
+
     }
+
+
 
     #userInfo {
+
       position: fixed;
+
       top: 10px;
+
       right: 10px;
+
       background: var(--panel2);
+
       border: 1px solid var(--border);
+
       padding: 8px 12px;
+
       border-radius: 9px;
+
       display: none;
+
       z-index: 9999;
+
     }
 
+
+
     #loginModal {
+
       backdrop-filter: blur(7px);
+
+      z-index: 100010 !important;
+
     }
+
+
 
     #loginModal>div {
+
       background: var(--panel) !important;
+
       color: var(--text);
+
       border: 1px solid var(--border);
+
     }
+
+
 
     #loginModal input {
+
       width: 100%;
+
       margin-bottom: 10px;
+
     }
 
-    @media(max-width:768px) {
-      body {
-        padding: 12px;
-      }
 
-      #userInfo {
-        position: static;
-        width: fit-content;
-        margin-bottom: 15px;
-      }
-
-      .toolbar input {
-        min-width: 100%;
-      }
-    }
 
     .warehouse-remove {
+
       margin: 4px 8px 4px -6px;
+
       padding: 8px 10px;
+
       background: #7f1d1d;
+
       border: 1px solid #ef4444;
+
       border-radius: 8px;
+
       color: #fff;
+
       font-weight: 700;
+
       cursor: pointer;
+
     }
+
+
 
     .warehouse-remove:hover {
+
       background: #b91c1c;
+
     }
 
 
-    /* Pantalla de acceso: oculta por completo el inventario a visitantes */
+
     #guestOverlay {
+
       display: none;
+
       position: fixed;
+
       inset: 0;
+
       z-index: 100000;
+
       align-items: center;
+
       justify-content: center;
+
       padding: 24px;
+
       overflow: auto;
+
       background: #0b1120;
+
       color: #e8eef9;
+
       text-align: center;
+
     }
+
+
 
     #guestCard {
+
       width: min(560px, 100%);
+
       padding: 30px;
+
       border-radius: 18px;
+
       background: #111a2e;
+
       border: 1px solid #354765;
+
       box-shadow: 0 25px 80px rgba(0, 0, 0, .6);
+
     }
+
+
 
     #guestCard h2 {
+
       margin: 0 0 14px;
+
       font-size: clamp(1.5rem, 4vw, 2.2rem);
+
     }
+
+
 
     #guestCard p {
+
       color: #aab8cf;
+
       margin: 0 0 18px;
+
     }
+
+
 
     #guestMeme {
+
       display: block;
+
       width: min(340px, 100%);
+
       height: 220px;
+
       object-fit: contain;
+
       margin: 0 auto 18px;
+
       border-radius: 12px;
+
     }
+
+
 
     #guestCard button {
+
       display: block;
+
       margin: 0 auto;
+
       background: #2563eb;
+
       color: white;
+
       border-color: #3b82f6;
+
     }
 
-    /* El punto de acceso invisible queda por encima de la pantalla de bloqueo */
-    #secretLogin {
-      z-index: 100002 !important;
-    }
 
-    #loginModal {
-      z-index: 100010 !important;
-    }
 
     #adminLogPanel h2 {
+
       margin: 12px 0;
+
     }
+
+
 
     #adminLogPanel p {
+
       margin-bottom: 12px;
+
       color: #9aaac4;
+
     }
 
+
+
     #adminLogPanel table {
+
       min-width: 650px;
+
+    }
+
+
+
+    .image-tools {
+
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 6px;
+
+      min-width: 145px;
+
+      align-items: center;
+
+    }
+
+
+
+    .image-tools button {
+
+      font-size: 12px;
+
+      padding: 7px 9px;
+
+      width: 100%;
+
+    }
+
+
+
+    .image-tools input[type=file] {
+
+      width: 145px;
+
+      max-width: 100%;
+
+      font-size: 11px;
+
+      padding: 5px;
+
+    }
+
+
+
+    .storage-modal {
+
+      display: none;
+
+      position: fixed;
+
+      inset: 0;
+
+      z-index: 100020;
+
+      background: rgba(0, 0, 0, .82);
+
+      backdrop-filter: blur(6px);
+
+      align-items: center;
+
+      justify-content: center;
+
+      padding: 16px;
+
+    }
+
+
+
+    .storage-card {
+
+      width: min(960px, 100%);
+
+      max-height: 92vh;
+
+      overflow-y: auto;
+
+      padding: 20px;
+
+      background: var(--panel);
+
+      border: 1px solid var(--border);
+
+      border-radius: 16px;
+
+      box-shadow: 0 25px 80px #0009;
+
+    }
+
+
+
+    .storage-header,
+
+    .storage-actions {
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      gap: 10px;
+
+      margin-bottom: 16px;
+
+    }
+
+
+
+    .storage-header h2 {
+
+      margin: 0;
+
+      font-size: 1.25rem;
+
+    }
+
+
+
+    #storageSearch {
+
+      width: 100%;
+
+      margin-bottom: 12px;
+
+    }
+
+
+
+    #storageStatus {
+
+      color: var(--muted);
+
+    }
+
+
+
+    .storage-gallery {
+
+      display: grid;
+
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+
+      gap: 12px;
+
+      margin: 16px 0;
+
+    }
+
+
+
+    .storage-image {
+
+      min-width: 0;
+
+      padding: 7px;
+
+      background: var(--panel2);
+
+      border: 2px solid var(--border);
+
+      border-radius: 10px;
+
+      cursor: pointer;
+
+      text-align: center;
+
+    }
+
+
+
+    .storage-image.selected {
+
+      border-color: #3b82f6;
+
+      background: #1d3153;
+
+    }
+
+
+
+    .storage-image img {
+
+      display: block;
+
+      width: 100%;
+
+      height: 100px;
+
+      object-fit: contain;
+
+      border: none;
+
+    }
+
+
+
+    .storage-image span {
+
+      display: block;
+
+      margin-top: 6px;
+
+      overflow-wrap: anywhere;
+
+      font-size: 12px;
+
+      color: var(--text);
+
+    }
+
+
+
+    .storage-preview {
+
+      padding: 12px;
+
+      margin-bottom: 16px;
+
+      border: 1px solid var(--border);
+
+      border-radius: 10px;
+
+      text-align: center;
+
+      color: var(--muted);
+
+      overflow-wrap: anywhere;
+
+    }
+
+
+
+    .storage-preview img {
+
+      width: auto;
+
+      max-width: 100%;
+
+      height: auto;
+
+      max-height: 260px;
+
+      object-fit: contain;
+
+      border: none;
+
+    }
+
+
+
+    .storage-actions {
+
+      justify-content: flex-end;
+
+      flex-wrap: wrap;
+
+      margin-bottom: 0;
+
+    }
+
+
+
+    @media(max-width:768px) {
+
+      body {
+
+        padding: 12px;
+
+      }
+
+
+
+      #userInfo {
+
+        position: static;
+
+        width: fit-content;
+
+        margin-bottom: 15px;
+
+      }
+
+
+
+      .toolbar input {
+
+        min-width: 100%;
+
+      }
+
+    }
+
+
+
+    @media(max-width:500px) {
+
+      .storage-card {
+
+        padding: 12px;
+
+      }
+
+
+
+      .storage-gallery {
+
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+      }
+
     }
   </style>
+
 </head>
+
+
 
 <body>
 
   <div id="secretLogin" title="Acceso"></div>
 
+
+
   <div id="guestOverlay" role="dialog" aria-modal="true" aria-labelledby="guestTitle">
+
     <div id="guestCard">
+
       <h2 id="guestTitle">¿Qué coño intentas mirar?</h2>
+
       <p>Esta zona es para gente con acceso. El botón secreto sigue ahí arriba 😉</p>
+
       <img id="guestMeme" alt="Meme de un gato mirando con sospecha"
         src="https://media.giphy.com/media/VbnUQpprotect4nQ2OZ/giphy.gif"
-        onerror="this.onerror=null;this.src='https://media.giphy.com/media/Ju7l5y9rabzdh7sdx7/giphy.gif';">
+        onerror="this.onerror=null;this.src='http&#x73;*:*//media.giphy.com/media/Ju7l5y9rabzdh7sdx7/giphy.gif';">
+
     </div>
-  </div>
-
-  <div id="userInfo">
-
-    <span id="userName"></span>
-
-    <button onclick="logout()">
-      Salir
-    </button>
 
   </div>
 
-  <div id="loginModal" style="
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,.5);
-justify-content:center;
-align-items:center;
-z-index:99999;
-">
 
-    <div style="
-background:white;
-padding:20px;
-border-radius:10px;
-width:320px;
-">
+
+  <div id="userInfo"><span id="userName"></span> <button onclick="logout()">Salir</button></div>
+
+
+
+  <div id="loginModal"
+    style="display:none;position:fixed;inset:0;width:100%;height:100%;background:rgba(0,0,0,.5);justify-content:center;align-items:center;">
+
+    <div style="padding:20px;border-radius:10px;width:320px;">
 
       <h3>Acceso</h3>
 
-      <input id="nombre" type="text" placeholder="Nombre" style="
-width:100%;
-margin-bottom:10px;
-padding:8px;
-">
+      <input id="nombre" type="text" placeholder="Nombre">
 
-      <input id="email" type="email" placeholder="Email" style="
-width:100%;
-margin-bottom:10px;
-padding:8px;
-">
+      <input id="email" type="email" placeholder="Email">
 
-      <input id="password" type="password" placeholder="Contraseña" style="
-width:100%;
-margin-bottom:10px;
-padding:8px;
-">
+      <input id="password" type="password" placeholder="Contraseña">
 
-      <button onclick="registerUser()">
-        Registrar
-      </button>
+      <button onclick="registerUser()">Registrar</button>
 
-      <button onclick="login()">
-        Entrar
-      </button>
+      <button onclick="login()">Entrar</button>
 
     </div>
 
   </div>
+
+
 
   <h1>📦 Inventario</h1>
 
   <div class="tabs" id="warehouseTabs" aria-label="Almacenes"></div>
+
   <div class="toolbar" id="warehouseAdmin" style="display:none">
+
     <input type="text" id="newWarehouseName" maxlength="50" placeholder="Nombre del nuevo almacén">
+
     <button class="add-btn" onclick="addWarehouse()">＋ Añadir almacén</button>
+
   </div>
 
-  <div id="adminLogBar" class="toolbar" style="display:none">
+
+
+  <div class="toolbar" id="adminLogBar" style="display:none">
+
     <button type="button" onclick="showAdminLog()">📋 Ver registro de movimientos</button>
+
   </div>
-  <section id="adminLogPanel" style="display:none; margin-bottom:18px">
+
+  <section id="adminLogPanel" style="display:none;margin-bottom:18px">
+
     <h2>Registro de movimientos</h2>
+
     <p>Registro de cambios realizados en el inventario.</p>
+
     <div class="table-wrap">
+
       <table>
+
         <thead>
+
           <tr>
+
             <th>Nombre</th>
+
             <th>Almacén</th>
+
             <th>Ítem</th>
+
             <th>Cantidad</th>
+
             <th>Fecha</th>
+
           </tr>
+
         </thead>
+
         <tbody id="adminLogBody"></tbody>
+
       </table>
+
     </div>
+
     <button type="button" onclick="hideAdminLog()" style="margin-top:12px">Cerrar registro</button>
+
   </section>
 
-  <div class="toolbar">
-    <input type="text" id="search" placeholder="Buscar producto..." onkeyup="renderTable()">
 
-    <button id="btnAdd" class="add-btn" onclick="addProduct()">
-      ➕ Añadir Producto
-    </button>
-    <button id="btnImport" onclick="migrateLocalData()">
-      ⬆️ Importar datos locales
-    </button>
+
+  <div class="toolbar">
+
+    <input type="text" id="search" placeholder="Buscar producto..." oninput="renderTable()">
+
+    <button id="btnAdd" class="add-btn" onclick="addProduct()">➕ Añadir Producto</button>
+
+    <button id="btnImport" onclick="migrateLocalData()">⬆️ Importar datos locales</button>
+
   </div>
 
+
+
   <div class="table-wrap">
+
     <table>
 
       <thead>
+
         <tr>
+
           <th>Imagen</th>
+
           <th>Nombre</th>
+
           <th>Cantidad</th>
+
           <th>Movimiento</th>
+
           <th>Mover</th>
+
           <th>Acciones</th>
+
         </tr>
+
       </thead>
 
       <tbody id="tableBody"></tbody>
 
     </table>
+
   </div>
+
+
+
+  <div id="storageModal" class="storage-modal" role="dialog" aria-modal="true" aria-labelledby="storageTitle">
+
+    <div class="storage-card">
+
+      <div class="storage-header">
+
+        <h2 id="storageTitle">🖼️ Imágenes de Firebase Storage</h2>
+
+        <button type="button" onclick="closeStoragePicker()">✕</button>
+
+      </div>
+
+      <input id="storageSearch" type="text" placeholder="Buscar imagen por nombre o carpeta..."
+        oninput="filterStorageImages()">
+
+      <p id="storageStatus" aria-live="polite">Cargando imágenes...</p>
+
+      <div id="storageGallery" class="storage-gallery"></div>
+
+      <div id="storagePreview" class="storage-preview">
+
+        <p>Selecciona una imagen para ver la vista previa.</p>
+
+      </div>
+
+      <div class="storage-actions">
+
+        <button type="button" onclick="closeStoragePicker()">Cancelar</button>
+
+        <button type="button" id="storageUseBtn" class="add-btn" disabled onclick="useStorageImage()">Usar imagen
+
+          seleccionada</button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
 
   <script type="module">
 
-    import { initializeApp }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      getDoc,
-      onSnapshot
-    }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      onAuthStateChanged,
-      signOut
-    }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    import { getStorage, ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+
 
     const firebaseConfig = {
 
       apiKey: "AIzaSyBYa4tuy6QIFPsW-cOX4id5l-tH1c8DBZM",
+
       authDomain: "almacen-71c09.firebaseapp.com",
+
       projectId: "almacen-71c09",
+
       storageBucket: "almacen-71c09.appspot.com",
+
       messagingSenderId: "433934928669",
+
       appId: "1:433934928669:web:184a41fa33f02413d0eff4"
 
     };
+
+
 
     const app = initializeApp(firebaseConfig);
 
@@ -505,768 +1156,1320 @@ padding:8px;
 
     const auth = getAuth(app);
 
+    const storage = getStorage(
+  app,
+  "gs://NOMBRE-EXACTO-DEL-BUCKET"
+);
+
+
+
     window.userRole = "guest";
 
     window.currentUser = null;
+
     window.currentUserName = "";
 
-    window.currentSection = "casa";
+    window.currentSection = "";
 
-    window.data = JSON.parse(
-      localStorage.getItem("inventario")
-    ) || {
+    window.data = JSON.parse(localStorage.getItem("inventario")) || {
 
-      casa: [],
-      almacenArriba: [],
-      almacenMuelle: [],
-      warehouseNames: { casa: "Casa", almacenArriba: "Almacén Arriba", almacenMuelle: "Almacén Muelle" }
+      warehouseNames: {}
 
     };
 
-    const defaultWarehouseNames = { casa: "Casa", almacenArriba: "Almacén Arriba", almacenMuelle: "Almacén Muelle" };
+
+
     window.data.warehouseNames = window.data.warehouseNames || {};
-    Object.keys(window.data.warehouseNames).forEach(key => { if (!Array.isArray(window.data[key])) window.data[key] = []; });
+
+
+
+    Object.keys(window.data.warehouseNames).forEach(key => {
+
+      if (!Array.isArray(window.data[key])) {
+
+        window.data[key] = [];
+
+      }
+
+    });
+
+    Object.keys(window.data.warehouseNames).forEach(key => {
+
+      if (!Array.isArray(window.data[key])) window.data[key] = [];
+
+    });
+
+    if (!Array.isArray(window.data.logs)) window.data.logs = [];
+
+
 
     function renderWarehouseTabs() {
+
       const tabs = document.getElementById("warehouseTabs");
+
       if (!tabs) return;
+
       tabs.innerHTML = "";
-      Object.entries(window.data.warehouseNames).forEach(([key, name]) => {
+
+      Object.entries(window.data.warehouseNames || {}).forEach(([key, name]) => {
+
         const tab = document.createElement("button");
+
         tab.className = "tab" + (window.currentSection === key ? " active" : "");
+
         tab.textContent = name;
-        tab.onclick = () => window.changeSection(key, tab);
+
+        tab.onclick = () => window.changeSection(key);
+
         tabs.appendChild(tab);
+
+
+
         if (window.userRole === "admin") {
+
           const remove = document.createElement("button");
+
           remove.className = "warehouse-remove";
+
           remove.textContent = "✕ Borrar";
+
           remove.title = "Borrar almacén " + name;
+
           remove.setAttribute("aria-label", "Borrar almacén " + name);
-          remove.onclick = (event) => {
+
+          remove.onclick = event => {
+
             event.stopPropagation();
+
             window.deleteWarehouse(key);
+
           };
+
           tabs.appendChild(remove);
+
         }
+
       });
-      document.getElementById("warehouseAdmin").style.display = window.userRole === "admin" ? "flex" : "none";
+
+      document.getElementById("warehouseAdmin").style.display =
+
+        window.userRole === "admin" ? "flex" : "none";
+
     }
 
-    window.addWarehouse = async function () {
-      if (window.userRole !== "admin") return alert("Solo un administrador puede añadir almacenes.");
-      const input = document.getElementById("newWarehouseName");
-      const name = input.value.trim();
-      if (!name) return alert("Escribe el nombre del almacén.");
-      if (Object.values(window.data.warehouseNames).some(n => n.toLowerCase() === name.toLowerCase())) return alert("Ya existe un almacén con ese nombre.");
-      const base = name.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 35) || "almacen";
-      let key = "almacen_" + base, n = 2;
-      while (Object.prototype.hasOwnProperty.call(window.data.warehouseNames, key)) key = "almacen_" + base + "_" + n++;
-      window.data.warehouseNames[key] = name;
-      window.data[key] = [];
-      addMovementLog(key, "(almacén creado)", "-");
-      window.currentSection = key;
-      input.value = "";
-      await window.saveData();
-      renderWarehouseTabs();
-      window.renderTable();
-    };
 
-    window.deleteWarehouse = async function (key) {
-      if (window.userRole !== "admin") return alert("Solo un administrador puede eliminar almacenes.");
-      if (!key) return;
-      const name = window.data.warehouseNames[key];
-      if (!name) return;
-      if (!confirm('¿Eliminar el almacén "' + name + '" y todos sus productos? Esta acción no se puede deshacer.')) return;
-      addMovementLog(key, "(almacén eliminado)", `Almacén borrado; productos eliminados: ${(window.data[key] || []).length}`);
-      delete window.data[key];
-      delete window.data.warehouseNames[key];
-      if (window.currentSection === key) window.currentSection = "casa";
-      await window.saveData();
-      renderWarehouseTabs();
-      window.renderTable();
-    };
 
     function isCarlosAdmin() {
-      return !!window.currentUser
-        && String(window.currentUserName || "").trim().toLowerCase() === "carlos"
-        && window.userRole === "admin";
+
+      return !!window.currentUser &&
+
+        String(window.currentUserName || "").trim().toLowerCase() === "carlos" &&
+
+        window.userRole === "admin";
+
     }
+
+
 
     function addMovementLog(warehouseKey, itemName, quantity) {
+
       if (!isCarlosAdmin()) return;
+
       if (!Array.isArray(window.data.logs)) window.data.logs = [];
+
       window.data.logs.unshift({
+
         nombre: window.currentUserName || "Carlos",
-        almacen: (window.data.warehouseNames || {})[warehouseKey] || warehouseKey || "-",
+
+        almacen: window.data.warehouseNames[warehouseKey] || warehouseKey || "-",
+
         item: String(itemName || "(sin nombre)"),
+
         cantidad: String(quantity ?? "-"),
+
         fecha: new Date().toLocaleString("es-ES", { dateStyle: "short", timeStyle: "medium" })
+
       });
-      // Keep the newest 5000 entries to stay within Firestore document size limits.
+
       window.data.logs = window.data.logs.slice(0, 5000);
+
     }
 
+
+
+    window.addWarehouse = async function () {
+
+      if (window.userRole !== "admin") return alert("Solo un administrador puede añadir almacenes.");
+
+      const input = document.getElementById("newWarehouseName");
+
+      const name = input.value.trim();
+
+      if (!name) return alert("Escribe el nombre del almacén.");
+
+      if (Object.values(window.data.warehouseNames).some(n => n.toLowerCase() === name.toLowerCase()))
+
+        return alert("Ya existe un almacén con ese nombre.");
+
+
+
+      const base = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+
+        .toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 35) || "almacen";
+
+      let key = "almacen_" + base, n = 2;
+
+      while (Object.prototype.hasOwnProperty.call(window.data.warehouseNames, key)) key = "almacen_" + base + "_" + n++;
+
+      window.data.warehouseNames[key] = name;
+
+      window.data[key] = [];
+
+      addMovementLog(key, "(almacén creado)", "-");
+
+      window.currentSection = key;
+
+      input.value = "";
+
+      await window.saveData();
+
+      renderWarehouseTabs();
+
+      window.renderTable();
+
+    };
+
+
+
+    window.deleteWarehouse = async function (key) {
+
+      if (window.userRole !== "admin") return alert("Solo un administrador puede eliminar almacenes.");
+
+      const name = window.data.warehouseNames[key];
+
+      if (!name) return;
+      if (!confirm(`¿Eliminar el almacén "${name}" y todos sus productos? Esta acción no se puede deshacer.`)) return;
+
+      addMovementLog(key, "(almacén eliminado)", `Almacén borrado; productos eliminados: ${(window.data[key] || []).length}`);
+
+      delete window.data[key];
+
+      delete window.data.warehouseNames[key];
+
+      if (window.currentSection === key) window.currentSection = Object.keys(window.data.warehouseNames)[0] || "";
+
+      await window.saveData();
+
+      renderWarehouseTabs();
+
+      window.renderTable();
+
+    };
+
+
+
     window.showAdminLog = function () {
+
       if (!isCarlosAdmin()) return alert("No tienes permiso para ver el registro.");
+
       document.getElementById("adminLogPanel").style.display = "block";
+
       document.getElementById("adminLogBar").style.display = "none";
+
       const tbody = document.getElementById("adminLogBody");
+
       tbody.innerHTML = "";
+
       (window.data.logs || []).forEach(entry => {
+
         const tr = document.createElement("tr");
+
         [entry.nombre, entry.almacen, entry.item, entry.cantidad, entry.fecha].forEach(value => {
+
           const td = document.createElement("td");
+
           td.textContent = value ?? "-";
+
           tr.appendChild(td);
+
         });
+
         tbody.appendChild(tr);
+
       });
+
     };
 
     window.hideAdminLog = function () {
+
       document.getElementById("adminLogPanel").style.display = "none";
+
       document.getElementById("adminLogBar").style.display = isCarlosAdmin() ? "flex" : "none";
+
     };
+
+
 
     async function saveToFirebase() {
 
       try {
 
-        await setDoc(
-          doc(db, "inventario", "principal"),
-          window.data
-        );
+        await setDoc(doc(db, "inventario", "principal"), window.data);
 
       } catch (error) {
 
-        console.error(error);
+        console.error("Error guardando inventario:", error);
+
+        alert("No se pudieron guardar los cambios en Firebase. Comprueba la conexión y las reglas de Firestore.");
+
       }
+
     }
 
-    async function migrateLocalData() {
+
+
+    window.migrateLocalData = async function () {
+
+      if (window.userRole !== "admin") return alert("Solo un administrador puede importar datos.");
 
       try {
 
-        const localData = JSON.parse(
-          localStorage.getItem("inventario")
-        );
+        const localData = JSON.parse(localStorage.getItem("inventario") || "null");
 
-        if (!localData) {
+        if (!localData) return alert("No hay datos locales");
 
-          alert("No hay datos locales");
+        if (!confirm("Esto sustituirá el inventario de Firebase con los datos locales. ¿Continuar?")) return;
 
-          return;
-        }
+        await setDoc(doc(db, "inventario", "principal"), localData);
 
-        await setDoc(
-          doc(db, "inventario", "principal"),
-          localData
-        );
-
-        alert(
-          "Datos locales importados a Firebase"
-        );
+        alert("Datos locales importados a Firebase");
 
       } catch (error) {
 
         console.error(error);
 
-        alert(
-          "Error importando datos"
-        );
+        alert("Error importando datos");
+
       }
-    }
 
-    window.migrateLocalData = migrateLocalData;
+    };
 
-    document
-      .getElementById("secretLogin")
-      .addEventListener("click", () => {
 
-        document
-          .getElementById("loginModal")
-          .style.display = "flex";
 
-      });
+    document.getElementById("secretLogin").addEventListener("click", () => {
+
+      document.getElementById("loginModal").style.display = "flex";
+
+    });
+
+
 
     window.registerUser = async function () {
 
       try {
 
-        const nombre =
-          document
-            .getElementById("nombre")
-            .value
-            .trim();
+        const nombre = document.getElementById("nombre").value.trim();
 
-        const email =
-          document
-            .getElementById("email")
-            .value
-            .trim();
+        const email = document.getElementById("email").value.trim();
 
-        const password =
-          document
-            .getElementById("password")
-            .value;
+        const password = document.getElementById("password").value;
 
-        if (!nombre) {
+        if (!nombre) return alert("Introduce un nombre");
 
-          alert("Introduce un nombre");
+        if (!email || !password) return alert("Introduce email y contraseña");
 
-          return;
-        }
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
 
-        const cred =
-          await createUserWithEmailAndPassword(
-            auth,
-            email,
-            password
-          );
+        await setDoc(doc(db, "usuarios", cred.user.uid), {
 
-        await setDoc(
-          doc(
-            db,
-            "usuarios",
-            cred.user.uid
-          ),
-          {
-            nombre: nombre,
-            email: email,
-            rol: "",
-            fechaRegistro:
-              new Date().toISOString()
-          }
-        );
+          nombre, email, rol: "", fechaRegistro: new Date().toISOString()
 
-        alert(
-          "Usuario creado correctamente"
-        );
+        });
+
+        alert("Usuario creado correctamente");
 
       } catch (error) {
 
         console.error(error);
 
         alert(error.message);
+
       }
+
     };
+
+
 
     window.login = async function () {
 
       try {
 
-        const email =
-          document
-            .getElementById("email")
-            .value
-            .trim();
+        const email = document.getElementById("email").value.trim();
 
-        const password =
-          document
-            .getElementById("password")
-            .value;
+        const password = document.getElementById("password").value;
 
-        await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+        await signInWithEmailAndPassword(auth, email, password);
 
       } catch (error) {
 
         console.error(error);
 
         alert(error.message);
+
       }
+
     };
+
+
 
     window.logout = async function () {
 
+      try { await signOut(auth); }
+
+      catch (error) { console.error(error); }
+
+    };
+
+
+
+    window.updatePermissions = function () {
+
+      const isAdmin = window.userRole === "admin";
+
+      document.getElementById("btnAdd").style.display = isAdmin ? "inline-block" : "none";
+
+      document.getElementById("btnImport").style.display = isAdmin ? "inline-block" : "none";
+
+      renderWarehouseTabs();
+
+    };
+
+
+
+    onAuthStateChanged(auth, async user => {
+
+      if (!user) {
+
+        window.currentUser = null;
+
+        window.currentUserName = "";
+
+        window.userRole = "guest";
+
+        document.getElementById("guestOverlay").style.display = "flex";
+
+        document.getElementById("adminLogBar").style.display = "none";
+
+        document.getElementById("adminLogPanel").style.display = "none";
+
+        document.getElementById("secretLogin").style.display = "block";
+
+        document.getElementById("userInfo").style.display = "none";
+
+        document.getElementById("loginModal").style.display = "none";
+
+        updatePermissions();
+
+        window.renderTable();
+
+        return;
+
+      }
+
+
+
+      window.currentUser = user;
+
       try {
 
-        await signOut(auth);
+        const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+
+        if (userDoc.exists()) {
+
+          const userData = userDoc.data();
+
+          window.userRole = String(userData.rol || "").trim();
+
+          window.currentUserName = String(userData.nombre || "").trim();
+
+          document.getElementById("userName").textContent =
+
+            (userData.nombre || "") + (window.userRole ? ` (${window.userRole})` : " (sin rango)");
+
+        } else {
+
+          window.userRole = "";
+
+          window.currentUserName = "";
+
+        }
 
       } catch (error) {
 
         console.error(error);
-      }
-    };
 
-    window.updatePermissions = function () {
+        window.userRole = "usuario";
 
-      const isAdmin =
-        window.userRole === "admin";
-
-      const btnAdd =
-        document.getElementById("btnAdd");
-
-      const btnImport =
-        document.getElementById("btnImport");
-
-      if (btnAdd) {
-
-        btnAdd.style.display =
-          isAdmin
-            ? "inline-block"
-            : "none";
       }
 
-      if (btnImport) btnImport.style.display = isAdmin ? "inline-block" : "none";
-      renderWarehouseTabs();
-    };
 
-    onAuthStateChanged(
-      auth,
-      async (user) => {
 
-        if (!user) {
+      document.getElementById("guestOverlay").style.display = window.userRole ? "none" : "flex";
 
-          window.currentUser = null;
-          window.currentUserName = "";
+      document.getElementById("loginModal").style.display = "none";
 
-          window.userRole = "guest";
-          document.getElementById("guestOverlay").style.display = "flex";
-          document.getElementById("adminLogBar").style.display = "none";
-          document.getElementById("adminLogPanel").style.display = "none";
+      document.getElementById("secretLogin").style.display = "none";
 
-          document
-            .getElementById("secretLogin")
-            .style.display =
-            "block";
+      document.getElementById("userInfo").style.display = "block";
 
-          document
-            .getElementById("userInfo")
-            .style.display =
-            "none";
+      updatePermissions();
 
-          updatePermissions();
+      document.getElementById("adminLogBar").style.display = isCarlosAdmin() ? "flex" : "none";
 
-          renderTable();
+      window.renderTable();
 
-          return;
-        }
+    });
 
-        window.currentUser = user;
-        document.getElementById("guestOverlay").style.display = "none";
 
-        try {
 
-          const userDoc =
-            await getDoc(
-              doc(
-                db,
-                "usuarios",
-                user.uid
-              )
-            );
-
-          if (userDoc.exists()) {
-
-            const userData =
-              userDoc.data();
-
-            window.userRole =
-              String(userData.rol || "").trim();
-            window.currentUserName = String(userData.nombre || "").trim();
-
-            document
-              .getElementById("userName")
-              .textContent = userData.nombre + (window.userRole ? " (" + window.userRole + ")" : " (sin rango)");
-
-          } else {
-
-            window.userRole =
-              "";
+    function normalizeInventoryData(raw) {
+      const result = raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
+      const names = result.warehouseNames && typeof result.warehouseNames === "object"
+        ? { ...result.warehouseNames }
+        : {};
+      // Recupera almacenes existentes en datos antiguos, sin crear almacenes fijos.
+      if (Object.keys(names).length === 0) {
+        for (const [key, value] of Object.entries(result)) {
+          if (key !== "warehouseNames" && key !== "logs" && Array.isArray(value)) {
+            names[key] = key.replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase());
           }
-
-        } catch (error) {
-
-          console.error(error);
-
-          window.userRole =
-            "usuario";
         }
-
-        document.getElementById("guestOverlay").style.display =
-          window.userRole ? "none" : "flex";
-
-        document
-          .getElementById("loginModal")
-          .style.display =
-          "none";
-
-        document
-          .getElementById("secretLogin")
-          .style.display =
-          "none";
-
-        document
-          .getElementById("userInfo")
-          .style.display =
-          "block";
-
-        updatePermissions();
-        document.getElementById("adminLogBar").style.display = isCarlosAdmin() ? "flex" : "none";
-
-        renderTable();
-
       }
-    );
+      result.warehouseNames = names;
+      for (const key of Object.keys(names)) {
+        if (!Array.isArray(result[key])) result[key] = [];
+      }
+      if (!Array.isArray(result.logs)) result.logs = [];
+      return result;
+    }
+
+
+
+
 
     async function loadFromFirebase() {
 
       try {
 
-        const snap = await getDoc(
-          doc(db, "inventario", "principal")
-        );
+        const snap = await getDoc(doc(db, "inventario", "principal"));
 
         if (snap.exists()) {
 
-          window.data = snap.data();
-          window.data.warehouseNames = window.data.warehouseNames || {};
-          Object.keys(window.data.warehouseNames).forEach(key => { if (!Array.isArray(window.data[key])) window.data[key] = []; });
+          window.data = normalizeInventoryData(snap.data());
+
+          if (!window.data.warehouseNames[window.currentSection])
+
+            window.currentSection = Object.keys(window.data.warehouseNames)[0] || "";
+
           renderWarehouseTabs();
 
-          localStorage.setItem(
-            "inventario",
-            JSON.stringify(window.data)
-          );
+          localStorage.setItem("inventario", JSON.stringify(window.data));
 
-          renderTable();
+          window.renderTable();
+
+        } else {
+
+          // Inicializa el documento con los datos locales solo si aún no existe.
+
+          await setDoc(doc(db, "inventario", "principal"), window.data);
+
         }
 
       } catch (error) {
 
-        console.error(error);
+        console.error("Error cargando inventario:", error);
+
       }
+
     }
+
+
+
+    let realtimeStarted = false;
 
     function startRealtimeSync() {
 
-      onSnapshot(
-        doc(db, "inventario", "principal"),
-        (snapshot) => {
+      if (realtimeStarted) return;
 
-          if (snapshot.exists()) {
+      realtimeStarted = true;
 
-            window.data = snapshot.data();
-            window.data.warehouseNames = window.data.warehouseNames || {};
-            Object.keys(window.data.warehouseNames).forEach(key => { if (!Array.isArray(window.data[key])) window.data[key] = []; });
-            renderWarehouseTabs();
+      onSnapshot(doc(db, "inventario", "principal"), snapshot => {
 
-            localStorage.setItem(
-              "inventario",
-              JSON.stringify(window.data)
-            );
+        if (snapshot.exists()) {
 
-            renderTable();
-          }
+          window.data = normalizeInventoryData(snapshot.data());
+
+          if (!window.data.warehouseNames[window.currentSection])
+
+            window.currentSection = Object.keys(window.data.warehouseNames)[0] || "";
+
+          localStorage.setItem("inventario", JSON.stringify(window.data));
+
+          renderWarehouseTabs();
+
+          window.renderTable();
+
         }
-      );
+
+      }, error => console.error("Error en sincronización:", error));
+
     }
+
+
 
     window.saveData = async function () {
 
-      localStorage.setItem(
-        "inventario",
-        JSON.stringify(window.data)
-      );
+      localStorage.setItem("inventario", JSON.stringify(window.data));
 
       await saveToFirebase();
+
     };
 
-    window.changeSection = function (section, button) {
 
-      currentSection = section;
 
-      document.querySelectorAll(".tab")
-        .forEach(tab => tab.classList.remove("active"));
+    window.changeSection = function (section) {
 
-      button.classList.add("active");
+      if (!Object.prototype.hasOwnProperty.call(window.data.warehouseNames, section)) return;
 
-      renderTable();
+      window.currentSection = section;
+
+      renderWarehouseTabs();
+
+      window.renderTable();
+
     };
 
-    window.addProduct = function () {
 
-      data[currentSection].push({
 
-        img: "",
-        nombre: "",
-        cantidad: 0
+    window.addProduct = async function () {
 
-      });
-      saveData();
-      renderTable();
+      if (window.userRole !== "admin") return alert("Solo un administrador puede añadir productos.");
+
+      if (!Array.isArray(window.data[window.currentSection])) window.data[window.currentSection] = [];
+
+      window.data[window.currentSection].push({ img: "", nombre: "", cantidad: 0 });
+
+      await window.saveData();
+
+      window.renderTable();
+
     };
 
-    window.updateName = function (index, value) {
-      const previousName = data[currentSection][index].nombre || "";
-      data[currentSection][index].nombre = value;
+
+
+    window.updateName = async function (index, value) {
+
+      if (window.userRole !== "admin") return;
+
+      const item = window.data[window.currentSection]?.[index];
+
+      if (!item) return;
+
+      const previousName = item.nombre || "";
+
+      item.nombre = value;
+
       if (String(value || "").trim() && String(value).trim() !== previousName) {
-        addMovementLog(
-          currentSection,
-          String(value).trim(),
-          `nombre actualizado; cantidad: ${Number(data[currentSection][index].cantidad) || 0}`
-        );
+
+        addMovementLog(window.currentSection, String(value).trim(),
+
+          `nombre actualizado; cantidad: ${Number(item.cantidad) || 0}`);
+
       }
-      saveData();
+
+      await window.saveData();
+
     };
 
-    window.updateImage = function (index, input) {
 
-      const file = input.files[0];
+
+    window.updateImage = async function (index, input) {
+
+      if (window.userRole !== "admin") return alert("Solo un administrador puede cambiar imágenes.");
+
+      const file = input.files?.[0];
 
       if (!file) return;
 
+      if (!file.type.startsWith("image/")) return alert("Selecciona un archivo de imagen válido.");
+
+      // Conserva el comportamiento previo: guarda la imagen como data URL en Firestore.
+
+      // Para imágenes grandes se recomienda subir el archivo a Storage.
+
+      if (file.size > 900 * 1024) {
+
+        alert("Esta imagen supera 900 KB. Para evitar superar el límite de tamaño del documento de Firestore, selecciona una imagen más pequeña o súbela a Firebase Storage.");
+
+        input.value = "";
+
+        return;
+
+      }
+
       const reader = new FileReader();
 
-      reader.onload = function (e) {
+      reader.onload = async event => {
 
-        data[currentSection][index].img =
-          e.target.result;
+        const item = window.data[window.currentSection]?.[index];
 
-        saveData();
-        renderTable();
+        if (!item) return;
+
+        item.img = event.target.result;
+
+        await window.saveData();
+
+        window.renderTable();
+
       };
 
+      reader.onerror = () => alert("No se pudo leer la imagen.");
+
       reader.readAsDataURL(file);
+
     };
 
-    window.adjustStock = function (index, amount) {
 
-      let stock =
-        Number(data[currentSection][index].cantidad) || 0;
-      const itemName = data[currentSection][index].nombre || "(sin nombre)";
+
+    window.adjustStock = async function (index, amount) {
+
+      if (window.userRole !== "admin") return alert("Solo un administrador puede modificar el stock.");
+
+      const item = window.data[window.currentSection]?.[index];
+
+      if (!item) return;
+
+      amount = Number(amount);
+
+      if (!Number.isFinite(amount) || !Number.isInteger(amount) || amount === 0) return alert("Introduce una cantidad entera válida.");
+
+      let stock = Number(item.cantidad) || 0;
+
       const previousStock = stock;
 
-      stock += amount;
+      stock = Math.max(0, stock + amount);
 
-      if (stock < 0) {
-        stock = 0;
-      }
+      item.cantidad = stock;
 
-      data[currentSection][index].cantidad = stock;
       const action = amount > 0 ? "Añadido" : "Quitado";
-      addMovementLog(currentSection, itemName, `${action}: ${Math.abs(amount)}; stock ${previousStock} → ${stock}`);
 
-      saveData();
-      renderTable();
+      addMovementLog(window.currentSection, item.nombre || "(sin nombre)",
+
+        `${action}: ${Math.abs(amount)}; stock ${previousStock} → ${stock}`);
+
+      await window.saveData();
+
+      window.renderTable();
+
     };
 
-    window.deleteProduct = function (index) {
 
-      if (confirm("¿Eliminar producto?")) {
 
-        const removed = data[currentSection][index];
-        addMovementLog(currentSection, removed?.nombre || "(sin nombre)", `Borrado; cantidad anterior: ${removed?.cantidad ?? 0}`);
-        data[currentSection].splice(index, 1);
+    window.deleteProduct = async function (index) {
 
-        saveData();
-        renderTable();
+      if (window.userRole !== "admin") return alert("Solo un administrador puede eliminar productos.");
+
+      const items = window.data[window.currentSection];
+
+      const removed = items?.[index];
+
+      if (!removed || !confirm("¿Eliminar producto?")) return;
+
+      addMovementLog(window.currentSection, removed.nombre || "(sin nombre)",
+
+        `Borrado; cantidad anterior: ${removed.cantidad ?? 0}`);
+
+      items.splice(index, 1);
+
+      await window.saveData();
+
+      window.renderTable();
+
+    };
+
+
+
+    window.moveProduct = async function (index, destination) {
+
+      if (window.userRole !== "admin") return alert("Solo un administrador puede mover productos.");
+
+      if (!destination || destination === window.currentSection) {
+
+        window.renderTable();
+
+        return;
+
       }
+
+      const source = window.data[window.currentSection];
+
+      const product = source?.[index];
+
+      if (!product || !Array.isArray(window.data[destination])) return;
+
+      addMovementLog(window.currentSection, product.nombre || "(sin nombre)",
+
+        `movido a ${window.data.warehouseNames[destination] || destination}; cantidad: ${product.cantidad ?? 0}`);
+
+      window.data[destination].push(product);
+
+      source.splice(index, 1);
+
+      await window.saveData();
+
+      window.renderTable();
+
     };
 
-    window.moveProduct = function (index, destination) {
 
-      if (destination === currentSection) return;
 
-      const product =
-        data[currentSection][index];
-      addMovementLog(currentSection, product?.nombre || "(sin nombre)", `movido a ${(data.warehouseNames || {})[destination] || destination}; cantidad: ${product?.cantidad ?? 0}`);
-
-      data[destination].push(product);
-
-      data[currentSection].splice(index, 1);
-
-      saveData();
-      renderTable();
-    };
     window.renderTable = function () {
 
-      const tbody =
-        document.getElementById("tableBody");
+      const tbody = document.getElementById("tableBody");
 
-      const search =
-        document.getElementById("search")
-          .value
-          .toLowerCase();
+      if (!tbody) return;
+
+      const search = document.getElementById("search").value.toLowerCase().trim();
 
       tbody.innerHTML = "";
 
-      data[currentSection].forEach((item, index) => {
+      const items = window.currentSection && Array.isArray(window.data[window.currentSection])
+        ? window.data[window.currentSection]
+        : [];
 
-        if (
-          !item.nombre.toLowerCase().includes(search)
-          &&
-          !String(item.cantidad)
-            .includes(search)
-        ) {
-          return;
+      if (!window.currentSection || !window.data.warehouseNames[window.currentSection]) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 6;
+        td.textContent = window.userRole === "admin"
+          ? "No hay almacenes todavía. Añade un almacén para empezar."
+          : "No hay almacenes disponibles.";
+        td.style.padding = "24px";
+        td.style.color = "var(--muted)";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+
+
+      items.forEach((item, index) => {
+
+        item = item || {};
+
+        const name = String(item.nombre || "");
+
+        const quantity = Number(item.cantidad) || 0;
+
+        if (!name.toLowerCase().includes(search) && !String(quantity).includes(search)) return;
+
+
+
+        const tr = document.createElement("tr");
+
+        const imageTd = document.createElement("td");
+
+        if (item.img) {
+
+          const img = document.createElement("img");
+
+          img.className = "product-img";
+
+          img.src = item.img;
+
+          img.alt = name ? `Imagen de ${name}` : "Imagen del producto";
+
+          img.loading = "lazy";
+
+          img.onerror = () => { img.alt = "No se pudo cargar la imagen"; };
+
+          imageTd.appendChild(img);
+
+        } else {
+
+          const noImage = document.createElement("div");
+
+          noImage.textContent = "Sin imagen";
+
+          noImage.style.color = "var(--muted)";
+
+          imageTd.appendChild(noImage);
+
         }
 
-        const lowClass =
-          item.cantidad <= 5
-            ? "low"
-            : "";
 
-        tbody.innerHTML += `
 
-        <tr>
+        if (window.userRole === "admin") {
 
-            <td>
+          const tools = document.createElement("div");
 
-                ${item.img
+          tools.className = "image-tools";
 
-            ?
+          tools.style.marginTop = "8px";
 
-            `<img src="${item.img}">`
+          const choose = document.createElement("button");
 
-            :
+          choose.type = "button";
 
-            `<input
-                        type="file"
-                        accept="image/*"
-                        onchange="updateImage(${index},this)">`
-          }
+          choose.textContent = "🖼️ Elegir de Storage";
 
-            </td>
+          choose.onclick = () => window.openStoragePicker(index);
 
-            <td>
+          const label = document.createElement("label");
 
-                <input
-                    type="text"
-                    value="${item.nombre}"
-                    onchange="updateName(${index},this.value)"
-                    placeholder="Nombre producto">
+          label.textContent = "Subir desde ordenador";
 
-            </td>
+          label.style.fontSize = "11px";
 
-            <td>
+          label.style.color = "var(--muted)";
 
-                <span class="stock ${lowClass}">
-                    ${Number(item.cantidad)
-            .toLocaleString('es-ES')}
-                </span>
+          const fileInput = document.createElement("input");
 
-            </td>
+          fileInput.type = "file";
 
-            <td>
+          fileInput.accept = "image/*";
 
-${window.userRole === "admin"
+          fileInput.setAttribute("aria-label", "Subir imagen desde el ordenador");
 
-            ?
+          fileInput.onchange = () => window.updateImage(index, fileInput);
 
-            `
+          tools.append(choose, label, fileInput);
 
-<input
-type="number"
-id="mov${index}"
-class="adjust-input"
-value="1"
-min="1">
+          imageTd.appendChild(tools);
 
-<button
-class="adjust-btn"
-onclick="adjustStock(
-${index},
-parseInt(
-document.getElementById(
-'mov${index}'
-).value || 1
-)
-)">
-➕
-</button>
+        }
 
-<button
-class="adjust-btn"
-onclick="adjustStock(
-${index},
--parseInt(
-document.getElementById(
-'mov${index}'
-).value || 1
-)
-)">
-➖
-</button>
+        tr.appendChild(imageTd);
 
-`
 
-            :
 
-            `Solo lectura`
+        const nameTd = document.createElement("td");
 
-          }
+        if (window.userRole === "admin") {
 
-</td>
+          const nameInput = document.createElement("input");
 
-            <td>
+          nameInput.type = "text";
 
-${window.userRole === "admin"
+          nameInput.value = name;
 
-            ?
+          nameInput.placeholder = "Nombre producto";
 
-            `
+          nameInput.maxLength = 200;
 
-<select
-onchange="moveProduct(
-${index},
-this.value
-)">
+          nameInput.onchange = () => window.updateName(index, nameInput.value);
 
-<option value="">
-Mover...
-</option>
+          nameTd.appendChild(nameInput);
 
-${Object.entries(window.data.warehouseNames).map(([key, name]) => `<option value="${key}">${name}</option>`).join("")}
+        } else {
 
-</select>
+          nameTd.textContent = name;
 
-`
+        }
 
-            :
+        tr.appendChild(nameTd);
 
-            `Solo lectura`
 
-          }
 
-</td>
+        const quantityTd = document.createElement("td");
 
-            <td>
+        const stock = document.createElement("span");
 
-${window.userRole === "admin"
+        stock.className = "stock" + (quantity <= 5 ? " low" : "");
 
-            ?
+        stock.textContent = quantity.toLocaleString("es-ES");
 
-            `
+        quantityTd.appendChild(stock);
 
-<button
-class="delete-btn"
-onclick="deleteProduct(${index})">
-Eliminar
-</button>
+        tr.appendChild(quantityTd);
 
-`
 
-            :
 
-            `Solo lectura`
+        const movementTd = document.createElement("td");
 
-          }
+        if (window.userRole === "admin") {
 
-</td>
+          const input = document.createElement("input");
 
-        </tr>
+          input.type = "number"; input.className = "adjust-input"; input.value = "1";
 
-        `;
+          input.min = "1"; input.step = "1"; input.setAttribute("aria-label", "Cantidad a mover");
+
+          const plus = document.createElement("button");
+
+          plus.className = "adjust-btn"; plus.textContent = "➕";
+
+          plus.onclick = () => {
+
+            const n = Number(input.value);
+
+            if (!Number.isInteger(n) || n < 1) return alert("Introduce una cantidad entera mayor que cero.");
+
+            window.adjustStock(index, n);
+
+          };
+
+          const minus = document.createElement("button");
+
+          minus.className = "adjust-btn"; minus.textContent = "➖";
+
+          minus.onclick = () => {
+
+            const n = Number(input.value);
+
+            if (!Number.isInteger(n) || n < 1) return alert("Introduce una cantidad entera mayor que cero.");
+
+            window.adjustStock(index, -n);
+
+          };
+
+          movementTd.append(input, plus, minus);
+
+        } else {
+
+          movementTd.textContent = "Solo lectura";
+
+        }
+
+        tr.appendChild(movementTd);
+
+
+
+        const moveTd = document.createElement("td");
+
+        if (window.userRole === "admin") {
+
+          const select = document.createElement("select");
+
+          select.appendChild(new Option("Mover...", ""));
+
+          Object.entries(window.data.warehouseNames || {}).forEach(([key, warehouseName]) => {
+
+            if (key !== window.currentSection) select.appendChild(new Option(warehouseName, key));
+
+          });
+
+          select.onchange = () => window.moveProduct(index, select.value);
+
+          moveTd.appendChild(select);
+
+        } else {
+
+          moveTd.textContent = "Solo lectura";
+
+        }
+
+        tr.appendChild(moveTd);
+
+
+
+        const actionsTd = document.createElement("td");
+
+        if (window.userRole === "admin") {
+
+          const del = document.createElement("button");
+
+          del.className = "delete-btn"; del.textContent = "Eliminar";
+
+          del.onclick = () => window.deleteProduct(index);
+
+          actionsTd.appendChild(del);
+
+        } else {
+
+          actionsTd.textContent = "Solo lectura";
+
+        }
+
+        tr.appendChild(actionsTd);
+
+        tbody.appendChild(tr);
+
       });
+
     };
 
+
+
+    // Selector de imágenes existentes en Firebase Storage.
+
+    let storageImages = [];
+
+    let selectedStorageImage = null;
+
+    let storageTarget = null;
+
+    let storageRequestId = 0;
+
+
+
+    window.openStoragePicker = async function (index) {
+
+      if (window.userRole !== "admin") return alert("Solo un administrador puede cambiar imágenes.");
+
+      if (!window.data[window.currentSection]?.[index]) return alert("No se ha encontrado el producto.");
+
+
+
+      storageTarget = { warehouse: window.currentSection, index };
+
+      selectedStorageImage = null;
+
+      const requestId = ++storageRequestId;
+
+      document.getElementById("storageModal").style.display = "flex";
+
+      document.getElementById("storageGallery").innerHTML = "";
+
+      document.getElementById("storagePreview").textContent = "Selecciona una imagen para ver la vista previa.";
+
+      document.getElementById("storageSearch").value = "";
+
+      document.getElementById("storageUseBtn").disabled = true;
+
+      document.getElementById("storageStatus").textContent = "Cargando imágenes de Storage...";
+
+      try {
+
+        const allImages = [];
+
+        const extensions = /\.(png|jpe?g|gif|webp|avif|bmp|svg)$/i;
+
+
+
+        async function scanFolder(folderRef) {
+          const result = await listAll(folderRef);
+          for (const itemRef of result.items) {
+            if (!extensions.test(itemRef.name)) continue;
+            try {
+              const url = await getDownloadURL(itemRef);
+              allImages.push({ name: itemRef.name, path: itemRef.fullPath, url });
+            } catch (itemError) {
+              console.warn("No se pudo obtener la URL de:", itemRef.fullPath, itemError);
+            }
+          }
+          for (const prefix of result.prefixes) await scanFolder(prefix);
+        }
+
+
+
+
+        await scanFolder(ref(storage, "/"));
+
+        if (requestId !== storageRequestId) return;
+
+        storageImages = allImages.sort((a, b) => a.path.localeCompare(b.path, "es"));
+
+        renderStorageGallery();
+
+        document.getElementById("storageStatus").textContent = storageImages.length
+
+          ? `${storageImages.length} imágenes disponibles`
+
+          : "No se han encontrado imágenes compatibles en Storage.";
+
+      } catch (error) {
+
+        console.error("Error cargando imágenes de Storage:", error);
+
+        if (requestId !== storageRequestId) return;
+
+        document.getElementById("storageStatus").textContent =
+
+          "No se pudieron cargar las imágenes. Comprueba el bucket configurado y las reglas de Firebase Storage.";
+
+      }
+
+    };
+
+
+
+    function renderStorageGallery() {
+
+      const gallery = document.getElementById("storageGallery");
+
+      const search = document.getElementById("storageSearch").value.trim().toLocaleLowerCase("es");
+
+      gallery.replaceChildren();
+
+      const filtered = storageImages.filter(image =>
+
+        image.name.toLocaleLowerCase("es").includes(search) ||
+
+        image.path.toLocaleLowerCase("es").includes(search)
+
+      );
+
+
+
+      filtered.forEach(image => {
+
+        const card = document.createElement("button");
+
+        card.type = "button";
+
+        card.className = "storage-image" +
+
+          (selectedStorageImage?.path === image.path ? " selected" : "");
+
+        card.setAttribute("aria-pressed", selectedStorageImage?.path === image.path ? "true" : "false");
+
+
+
+        const thumbnail = document.createElement("img");
+
+        thumbnail.src = image.url;
+
+        thumbnail.alt = image.name;
+
+        thumbnail.loading = "lazy";
+
+        thumbnail.onerror = () => { thumbnail.alt = "No se pudo cargar la miniatura"; };
+
+
+
+        const filename = document.createElement("span");
+
+        filename.textContent = image.name;
+
+        filename.title = image.path;
+
+        card.append(thumbnail, filename);
+
+        card.onclick = () => {
+
+          selectedStorageImage = image;
+
+          document.getElementById("storageUseBtn").disabled = false;
+
+          const preview = document.getElementById("storagePreview");
+
+          preview.replaceChildren();
+
+          const fullImage = document.createElement("img");
+
+          fullImage.src = image.url;
+
+          fullImage.alt = image.name;
+
+          const path = document.createElement("p");
+
+          path.textContent = image.path;
+
+          preview.append(fullImage, path);
+
+          renderStorageGallery();
+
+        };
+
+        gallery.appendChild(card);
+
+      });
+
+
+
+      if (!filtered.length) {
+
+        const empty = document.createElement("p");
+
+        empty.textContent = "No hay imágenes que coincidan con la búsqueda.";
+
+        gallery.appendChild(empty);
+
+      }
+
+    }
+
+
+
+    window.filterStorageImages = renderStorageGallery;
+
+
+
+    window.useStorageImage = async function () {
+
+      if (window.userRole !== "admin") return alert("Solo un administrador puede cambiar imágenes.");
+
+      if (!selectedStorageImage || !storageTarget) return;
+
+      const { warehouse, index } = storageTarget;
+
+      const product = window.data[warehouse]?.[index];
+
+      if (!product) return alert("No se ha encontrado el producto. Cierra el selector y vuelve a abrirlo.");
+
+
+
+      const previousImage = product.img;
+
+      product.img = selectedStorageImage.url;
+
+      try {
+
+        await window.saveData();
+
+        window.closeStoragePicker();
+
+        window.renderTable();
+
+      } catch (error) {
+
+        product.img = previousImage;
+
+        console.error(error);
+
+        alert("No se pudo guardar la imagen seleccionada.");
+
+      }
+
+    };
+
+
+
+    window.closeStoragePicker = function () {
+
+      storageRequestId++;
+
+      document.getElementById("storageModal").style.display = "none";
+
+      selectedStorageImage = null;
+
+      storageTarget = null;
+
+    };
+
+
+
+    document.getElementById("storageModal").addEventListener("click", event => {
+
+      if (event.target.id === "storageModal") window.closeStoragePicker();
+
+    });
+
+    document.addEventListener("keydown", event => {
+
+      if (event.key === "Escape" && document.getElementById("storageModal").style.display === "flex")
+
+        window.closeStoragePicker();
+
+    });
+
+
+
     renderWarehouseTabs();
+
+    window.renderTable();
+
     loadFromFirebase();
 
     startRealtimeSync();
@@ -1274,5 +2477,7 @@ Eliminar
   </script>
 
 </body>
+
+
 
 </html>
